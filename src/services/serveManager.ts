@@ -176,14 +176,18 @@ export async function spawnServe(
   const args = ["serve", "--port", port.toString()];
   const env = { ...process.env };
   const command = resolveOpencodeCommand(env);
+  const needsShellQuote = process.platform === "win32" && command.includes(" ");
+  const safeCommand = needsShellQuote ? `"${command}"` : command;
 
   console.log(`[opencode] Spawning: ${command} ${args.join(" ")}`);
   console.log(`[opencode] Working directory: ${projectPath}`);
 
-  const child = spawn(command, args, {
+  const child = spawn(safeCommand, args, {
     cwd: projectPath,
     env,
     stdio: ["inherit", "pipe", "pipe"],
+    shell: true,
+    windowsHide: true,
   });
 
   const instance: ServeInstance = {
